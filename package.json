@@ -1,0 +1,32 @@
+{
+  "name": "discover-our-work",
+  "version": "0.1.0",
+  "description": "A way for folks to find interesting 18F projects.",
+  "main": "bundle.js",
+  "scripts": {
+    "build": "browserify -t brfs js/app.js -o bundle.js",
+    "watch": "watchify -t brfs js/app.js -o bundle.js",
+    "start": "npm run watch & http-server",
+    "test": "mocha test/bootstrap.test.js test/**/*.test.js"
+  },
+  "author": "Jeremia Kimelman <jeremia.kimelman@gsa.gov>",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "dependencies": {
+    "backbone": "^1.2.3",
+    "browserify": "^12.0.1",
+    "jquery": "^2.1.4",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "brfs": "^1.4.1",
+    "http-server": "^0.8.5",
+    "jsdom": "^7.0.2",
+    "mocha": "^2.3.3",
+    "sinon": "^1.17.2",
+    "watchify": "^3.6.0"
+  },
+  "engines": {
+    "node": "5.0.x",
+    "npm": "3.3.x"
+  }
+}
