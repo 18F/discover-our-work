@@ -1,5 +1,9 @@
 # Discover Our Work
 
+## What is this project?
+
+We want to make it easy for people to find and filter 18F projects in different ways. The filters are based on information in each repo's [about.yml](https://github.com/18F/about_yml) file. 
+
 ## Getting started
 
 This project is built with `node v5.0.x` and `npm v3.3.x`. We use [`nvm`](https://github.com/creationix/nvm) to manage different versions of `node` but you're welcome to use whatever tool works for you. You can check the version of either `node` or `npm` with the `-v` flag.
