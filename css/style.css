@@ -25,5 +25,7 @@ main {
 }
 
 .usa-label {
-  text-transform: lowercase;
+  padding-bottom: 0.3rem;
+  padding-top: 0.1rem;
+  text-transform: capitalize;
 }
