@@ -2,9 +2,11 @@ main {
   margin: 0 auto;
   width: 80%;
 }
+
 .project-list {
   list-style-type: none;
 }
+
 .project {
   border:1px solid black;
   float: left;
@@ -13,12 +15,15 @@ main {
   padding: .5em;
   width: 30%;
 }
+
 .project::before {
   content: "";
 }
+
 .tag-list {
   width: 100%;
 }
+
 .usa-label {
   text-transform: lowercase;
 }
