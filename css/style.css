@@ -28,4 +28,6 @@ main {
   padding-bottom: 0.3rem;
   padding-top: 0.1rem;
   text-transform: capitalize;
+  margin-bottom: 0.3rem;
+  display: inline-block;
 }
