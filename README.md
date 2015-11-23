@@ -11,6 +11,7 @@ This project is built with `node v5.0.x` and `npm v3.3.x`. We use [`nvm`](https:
 ### Steps to install and run project
 
 0. `$ git clone git@github.com:18F/discover-our-work.git && cd discover-our-work`
+0. `$ bundle install`
 0. `$ npm install`
 0. `$ npm start` - The project should then be live at [http://127.0.0.1:8080/]()
 
