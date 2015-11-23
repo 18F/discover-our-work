@@ -91,7 +91,7 @@ module.exports = ProjectCollection;
 var _ = require('underscore');
 var Backbone = require('backbone');
 
-var html = Buffer("PGEgaHJlZj0iLyNwcm9qZWN0cy88JS0gbmFtZSAlPiI+PCUtIG5hbWUgJT48L2E+CjxwPjwlPSBkZXNjcmlwdGlvbiAlPjwvcD4KPCUgaWYgKHN0YWNrKSB7ICU+CiAgPGRpdiBjbGFzcz0idGFnLWxpc3QiPgogICAgPCUgXy5lYWNoKHN0YWNrLCBmdW5jdGlvbiAocykgeyAlPgogICAgICA8c3BhbiBjbGFzcz0idXNhLWxhYmVsIj48JS0gcyAlPjwvc3Bhbj4KICAgIDwlIH0pICU+CiAgPC9kaXY+CjwlIH0gJT4K","base64").toString();
+var html = Buffer("PGEgaHJlZj0iI3Byb2plY3RzLzwlLSBuYW1lICU+Ij48JS0gbmFtZSAlPjwvYT4KPHA+PCU9IGRlc2NyaXB0aW9uICU+PC9wPgo8JSBpZiAoc3RhY2spIHsgJT4KICA8ZGl2IGNsYXNzPSJ0YWctbGlzdCI+CiAgICA8JSBfLmVhY2goc3RhY2ssIGZ1bmN0aW9uIChzKSB7ICU+CiAgICAgIDxzcGFuIGNsYXNzPSJ1c2EtbGFiZWwiPjwlLSBzICU+PC9zcGFuPgogICAgPCUgfSkgJT4KICA8L2Rpdj4KPCUgfSAlPgo=","base64").toString();
 var template = _.template(html);
 
 var ProjectCardView = Backbone.View.extend({
