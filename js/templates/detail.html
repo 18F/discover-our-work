@@ -1,0 +1,58 @@
+<h1>Discover our work: <%- project.name %></h1>
+
+<% if (project.errors) { %>
+<div class="usa-alert usa-alert-error" role="alert">
+  <div class="usa-alert-body">
+    <h3 class="usa-alert-heading">Errors</h3>
+    <ol>
+    <% _.forEach(project.errors, function(error) { %>
+      <li class="usa-alert-text"><%- error %></li>
+    <% }); %>
+    </ol>
+  </div>
+</div>
+<% } %>
+
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Attribute</th>
+      <th scope="col">Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% _.forEach(project, function(v, k) { %>
+      <% if (_.contains(hidden, k)) { return; } %>
+      <tr>
+        <td scope="row"><%- k %></td>
+        <td>
+          <% if (typeof v === 'string') { %>
+            <%- v %>
+          <% } else if (typeof v === 'boolean') { %>
+            <%- v %>
+          <% } else if (k === 'team') { %>
+            <ul>
+              <% _.forEach(v, function(m) { %>
+                <li><%- m.full_name %></li>
+              <% }); %>
+            </ul>
+          <% } else if (k === 'links') { %>
+            <ul>
+              <% _.forEach(v, function(l) { %>
+                <li><a href="<%- l.url %>"><%- l.text %></a></li>
+              <% }); %>
+            </ul>
+          <% } else if (k === 'licenses') { %>
+            <ul>
+              <% _.forEach(v, function(l) { %>
+                <li><a href="<%- l.url %>"><%- l.name %></a></li>
+              <% }); %>
+            </ul>
+          <% } else { %>
+            <%- JSON.stringify(v) %>
+          <% } %>
+        </td>
+      </tr>
+    <% }); %>
+  </tbody>
+</table>
