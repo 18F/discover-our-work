@@ -1,7 +1,6 @@
 title: Discover our work
 
 exclude:
-  - js/
   - node_modules/
   - test/
   - Gemfile*
