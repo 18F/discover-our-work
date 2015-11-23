@@ -2,44 +2,42 @@
 var Backbone = require('backbone');
 window.jQuery = window.$ = Backbone.$;
 
+var ViewSwitcher = require('ampersand-view-switcher');
+
 var ProjectCollection = require('./models/projects');
-var ProjectCardView = require('./views/project-card');
-var SelectView = require('./views/select');
+var ProjectListView = require('./views/list');
+var ProjectCardView = require('./views/card');
+var ProjectDetailView = require('./views/detail');
 
 var Router = Backbone.Router.extend({
   routes: {
-    "": "allProjects"
+    "": "listProjects",
+    "projects/:name": "showProject"
   },
   initialize: function () {
-    var self = this;
-    this.projects = new ProjectCollection();
-    this.listenToOnce(this.projects, 'sync', function () {
-      self.selectView = new SelectView({ collection: self.projects});
-      self.selectView.on('select:change', self.filterProjects.bind(self));
+    var self = window.x = this,
+        el = $('main')[0];
 
-      Backbone.history.loadUrl();
+    this.projects = new ProjectCollection();
+    this.viewSwitcher = new ViewSwitcher(el);
+    this.listenToOnce(this.projects, 'sync', function () {
+      Backbone.history.start();
     });
   },
-  allProjects: function () {
-    this.listProjects(this.projects);
+  listProjects: function () {
+    var listView = new ProjectListView({ collection: this.projects });
+    this.viewSwitcher.set(listView);
   },
-  filterProjects: function (e) {
-    var projects = this.projects.filterBy(e);
-    this.listProjects(projects);
-  },
-  listProjects: function (projects) {
-    $('#project-list').empty();
-    projects.forEach(function(project) {
-      var view = new ProjectCardView({ model: project });
-      $('#project-list').append(view.el);
-    });
+  showProject: function (name) {
+    var project = this.projects.where({ name: name })[0],
+        detailView = new ProjectDetailView({ model: project });
+    this.viewSwitcher.set(detailView);
   }
 });
 
 window.app = new Router();
-Backbone.history.start();
 
-},{"./models/projects":3,"./views/project-card":4,"./views/select":5,"backbone":6}],2:[function(require,module,exports){
+},{"./models/projects":3,"./views/card":4,"./views/detail":5,"./views/list":6,"ampersand-view-switcher":8,"backbone":9}],2:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var ProjectModel = Backbone.Model.extend({
@@ -50,7 +48,7 @@ var ProjectModel = Backbone.Model.extend({
 
 module.exports = ProjectModel;
 
-},{"backbone":6}],3:[function(require,module,exports){
+},{"backbone":9}],3:[function(require,module,exports){
 var Backbone = require('backbone');
 var _ = require('underscore');
 
@@ -86,14 +84,14 @@ var ProjectCollection = Backbone.Collection.extend({
 
 module.exports = ProjectCollection;
 
-},{"./project":2,"backbone":6,"underscore":12}],4:[function(require,module,exports){
+},{"./project":2,"backbone":9,"underscore":15}],4:[function(require,module,exports){
 (function (Buffer){
 
 
 var _ = require('underscore');
 var Backbone = require('backbone');
 
-var html = Buffer("PGEgaHJlZj0iL3Byb2plY3RzLzwlLSBuYW1lICU+Ij48JS0gbmFtZSAlPjwvYT4KPHA+PCU9IGRlc2NyaXB0aW9uICU+PC9wPgo8ZGl2IGNsYXNzPSJ0YWctbGlzdCI+CiAgPCUgXy5lYWNoKHN0YWNrLCBmdW5jdGlvbiAocykgeyAlPgogICAgPHNwYW4gY2xhc3M9InVzYS1sYWJlbCI+PCUtIHMgJT48L3NwYW4+CiAgPCUgfSkgJT4KPC9kaXY+Cg==","base64").toString();
+var html = Buffer("PGEgaHJlZj0iLyNwcm9qZWN0cy88JS0gbmFtZSAlPiI+PCUtIG5hbWUgJT48L2E+CjxwPjwlPSBkZXNjcmlwdGlvbiAlPjwvcD4KPCUgaWYgKHN0YWNrKSB7ICU+CiAgPGRpdiBjbGFzcz0idGFnLWxpc3QiPgogICAgPCUgXy5lYWNoKHN0YWNrLCBmdW5jdGlvbiAocykgeyAlPgogICAgICA8c3BhbiBjbGFzcz0idXNhLWxhYmVsIj48JS0gcyAlPjwvc3Bhbj4KICAgIDwlIH0pICU+CiAgPC9kaXY+CjwlIH0gJT4K","base64").toString();
 var template = _.template(html);
 
 var ProjectCardView = Backbone.View.extend({
@@ -105,14 +103,76 @@ var ProjectCardView = Backbone.View.extend({
   },
   render: function () {
     var defaults = {
-          description: 'Description',
-          stack: []
+          stack: undefined,
+          description: undefined
         },
-        attrs = _.extend({}, defaults, this.model.attributes);
+        attrs = _.extend({}, defaults, this.model.attributes),
+        missing = missingAttributes(attrs),
+        html = template(attrs);
 
-    var html = template(attrs);
+    if (missing) {
+      this.$el.addClass('highlight');
+      this.$el.attr('title', titleTemplate(missing));
+    }
 
     this.$el.html(html);
+
+    return this;
+  }
+});
+
+function missingAttributes(attrs) {
+  var keys = _.keys(attrs),
+      missing = [];
+
+  keys.forEach(function (k) {
+    var v = attrs[k];
+    if (v === undefined) missing.push(k);
+  });
+
+  if (missing.length > 0) return missing;
+
+  return false;
+}
+
+function titleTemplate(missing) {
+  var ts = ['This project is missing attributes:',
+            '<% _.each(missing, function(m) { %>* <%- m %>\n<% }); %>'
+          ].join('\n'),
+      template = _.template(ts)({ missing: missing });
+
+  return template;
+}
+
+module.exports = ProjectCardView;
+
+}).call(this,require("buffer").Buffer)
+},{"backbone":9,"buffer":11,"underscore":15}],5:[function(require,module,exports){
+(function (Buffer){
+
+
+var _ = require('underscore');
+var Backbone = require('backbone');
+
+var html = Buffer("PGgxPkRpc2NvdmVyIG91ciB3b3JrOiA8JS0gcHJvamVjdC5uYW1lICU+PC9oMT4KCjwlIGlmIChwcm9qZWN0LmVycm9ycykgeyAlPgo8ZGl2IGNsYXNzPSJ1c2EtYWxlcnQgdXNhLWFsZXJ0LWVycm9yIiByb2xlPSJhbGVydCI+CiAgPGRpdiBjbGFzcz0idXNhLWFsZXJ0LWJvZHkiPgogICAgPGgzIGNsYXNzPSJ1c2EtYWxlcnQtaGVhZGluZyI+RXJyb3JzPC9oMz4KICAgIDxvbD4KICAgIDwlIF8uZm9yRWFjaChwcm9qZWN0LmVycm9ycywgZnVuY3Rpb24oZXJyb3IpIHsgJT4KICAgICAgPGxpIGNsYXNzPSJ1c2EtYWxlcnQtdGV4dCI+PCUtIGVycm9yICU+PC9saT4KICAgIDwlIH0pOyAlPgogICAgPC9vbD4KICA8L2Rpdj4KPC9kaXY+CjwlIH0gJT4KCjx0YWJsZT4KICA8dGhlYWQ+CiAgICA8dHI+CiAgICAgIDx0aCBzY29wZT0iY29sIj5BdHRyaWJ1dGU8L3RoPgogICAgICA8dGggc2NvcGU9ImNvbCI+VmFsdWU8L3RoPgogICAgPC90cj4KICA8L3RoZWFkPgogIDx0Ym9keT4KICAgIDwlIF8uZm9yRWFjaChwcm9qZWN0LCBmdW5jdGlvbih2LCBrKSB7ICU+CiAgICAgIDwlIGlmIChfLmNvbnRhaW5zKGhpZGRlbiwgaykpIHsgcmV0dXJuOyB9ICU+CiAgICAgIDx0cj4KICAgICAgICA8dGQgc2NvcGU9InJvdyI+PCUtIGsgJT48L3RkPgogICAgICAgIDx0ZD4KICAgICAgICAgIDwlIGlmICh0eXBlb2YgdiA9PT0gJ3N0cmluZycpIHsgJT4KICAgICAgICAgICAgPCUtIHYgJT4KICAgICAgICAgIDwlIH0gZWxzZSBpZiAodHlwZW9mIHYgPT09ICdib29sZWFuJykgeyAlPgogICAgICAgICAgICA8JS0gdiAlPgogICAgICAgICAgPCUgfSBlbHNlIGlmIChrID09PSAndGVhbScpIHsgJT4KICAgICAgICAgICAgPHVsPgogICAgICAgICAgICAgIDwlIF8uZm9yRWFjaCh2LCBmdW5jdGlvbihtKSB7ICU+CiAgICAgICAgICAgICAgICA8bGk+PCUtIG0uZnVsbF9uYW1lICU+PC9saT4KICAgICAgICAgICAgICA8JSB9KTsgJT4KICAgICAgICAgICAgPC91bD4KICAgICAgICAgIDwlIH0gZWxzZSBpZiAoayA9PT0gJ2xpbmtzJykgeyAlPgogICAgICAgICAgICA8dWw+CiAgICAgICAgICAgICAgPCUgXy5mb3JFYWNoKHYsIGZ1bmN0aW9uKGwpIHsgJT4KICAgICAgICAgICAgICAgIDxsaT48YSBocmVmPSI8JS0gbC51cmwgJT4iPjwlLSBsLnRleHQgJT48L2E+PC9saT4KICAgICAgICAgICAgICA8JSB9KTsgJT4KICAgICAgICAgICAgPC91bD4KICAgICAgICAgIDwlIH0gZWxzZSBpZiAoayA9PT0gJ2xpY2Vuc2VzJykgeyAlPgogICAgICAgICAgICA8dWw+CiAgICAgICAgICAgICAgPCUgXy5mb3JFYWNoKHYsIGZ1bmN0aW9uKGwpIHsgJT4KICAgICAgICAgICAgICAgIDxsaT48YSBocmVmPSI8JS0gbC51cmwgJT4iPjwlLSBsLm5hbWUgJT48L2E+PC9saT4KICAgICAgICAgICAgICA8JSB9KTsgJT4KICAgICAgICAgICAgPC91bD4KICAgICAgICAgIDwlIH0gZWxzZSB7ICU+CiAgICAgICAgICAgIDwlLSBKU09OLnN0cmluZ2lmeSh2KSAlPgogICAgICAgICAgPCUgfSAlPgogICAgICAgIDwvdGQ+CiAgICAgIDwvdHI+CiAgICA8JSB9KTsgJT4KICA8L3Rib2R5Pgo8L3RhYmxlPgo=","base64").toString();
+var template = _.template(html);
+
+var ProjectCardView = Backbone.View.extend({
+  initialize: function () {
+    this.render();
+    return this;
+  },
+  render: function () {
+    var hiddenAttributes = ['errors', 'self'],
+        opts = {
+          project: this.model.toJSON(),
+          hidden: hiddenAttributes
+        },
+        html = template(opts);
+
+    this.$el.html(html);
+
+    window.z = this.model.toJSON();
 
     return this;
   }
@@ -121,26 +181,75 @@ var ProjectCardView = Backbone.View.extend({
 module.exports = ProjectCardView;
 
 }).call(this,require("buffer").Buffer)
-},{"backbone":6,"buffer":8,"underscore":12}],5:[function(require,module,exports){
+},{"backbone":9,"buffer":11,"underscore":15}],6:[function(require,module,exports){
+(function (Buffer){
+
+
+var Backbone = require('backbone');
+var _ = require('underscore');
+
+var SelectView = require('./select');
+var ProjectCardView = require('./card');
+
+var html = Buffer("PGgxPkRpc2NvdmVyIG91ciB3b3JrPC9oMT4KPGRpdiBpZD0iZmlsdGVyIj48L2Rpdj4KPHVsIGNsYXNzPSJwcm9qZWN0LWxpc3QiIGlkPSJwcm9qZWN0LWxpc3QiPgo8L3VsPgo=","base64").toString();
+var template = _.template(html);
+
+var ProjectListView = Backbone.View.extend({
+  initialize: function () {
+    var self = this,
+        opts = {
+          collection: this.collection
+        };
+    this.selectView = new SelectView(opts);
+    this.selectView.on('select:change', this.filterProjects.bind(self));
+
+    return this;
+  },
+  render: function () {
+    this.$el.html(template());
+    this.listProjects(this.collection);
+
+    this.selectView.$el = this.$('#filter');
+    this.selectView.render();
+    return this;
+  },
+  filterProjects: function (e) {
+    var projects = this.collection.filterBy(e);
+    this.listProjects(projects);
+  },
+  listProjects: function (projects) {
+    var self = this;
+    this.$('#project-list').empty();
+    projects.forEach(function(project) {
+      var view = new ProjectCardView({ model: project });
+      self.$('#project-list').append(view.el);
+    });
+  },
+});
+
+module.exports = ProjectListView;
+
+}).call(this,require("buffer").Buffer)
+},{"./card":4,"./select":7,"backbone":9,"buffer":11,"underscore":15}],7:[function(require,module,exports){
 var Backbone = require('backbone');
 
 var SelectView = Backbone.View.extend({
   events: {
     'change': 'change'
   },
-  el: '#filter',
-  initialize: function () {
-    this.$el.html('<label for="select-filter">Filter projects by</label><select id="select-filter"></select>');
-    this.render();
+  initialize: function (opts) {
     return this;
   },
   render: function () {
     var self = this;
+
+    this.$el.html('<label for="select-filter">Filter projects by</label><select id="select-filter"></select>');
     this.collection.getFields().forEach(function(f) {
       var html = `<option value="${f}">${f}</option>`;
       self.$('select').append(html)
     });
 
+    this.delegateEvents(this.events);
     return this;
   },
   change: function (e) {
@@ -150,7 +259,118 @@ var SelectView = Backbone.View.extend({
 
 module.exports = SelectView;
 
-},{"backbone":6}],6:[function(require,module,exports){
+},{"backbone":9}],8:[function(require,module,exports){
+;if (typeof window !== "undefined") {  window.ampersand = window.ampersand || {};  window.ampersand["ampersand-view-switcher"] = window.ampersand["ampersand-view-switcher"] || [];  window.ampersand["ampersand-view-switcher"].push("2.0.0");}
+function ViewSwitcher(el, options) {
+    options || (options = {});
+    this.el = el;
+    this.config = {
+        hide: null,
+        show: null,
+        empty: null,
+        waitForRemove: false
+    };
+    for (var item in options) {
+        if (this.config.hasOwnProperty(item)) {
+            this.config[item] = options[item];
+        }
+    }
+    if (options.view) {
+        this._setCurrent(options.view);
+        this._render(options.view);
+    } else {
+        // call this so the empty callback gets called
+        this._onViewRemove();
+    }
+}
+
+ViewSwitcher.prototype.set = function (view) {
+    var self = this;
+    var prev = this.previous = this.current;
+
+    if (prev === view) {
+        return;
+    }
+
+    if (this.config.waitForRemove) {
+        this._hide(prev, function () {
+            self._show(view);
+        });
+    } else {
+        this._hide(prev);
+        this._show(view);
+    }
+};
+
+ViewSwitcher.prototype._setCurrent = function (view) {
+    this.current = view;
+    if (view) this._registerRemoveListener(view);
+    var emptyCb = this.config.empty;
+    if (emptyCb && !this.current) {
+        emptyCb();
+    }
+    return view;
+};
+
+ViewSwitcher.prototype.clear = function (cb) {
+    this._hide(this.current, cb);
+};
+
+// If the view switcher itself is removed, remove its child to avoid memory leaks
+ViewSwitcher.prototype.remove = function () {
+    if (this.current) this.current.remove();
+};
+
+ViewSwitcher.prototype._show = function (view) {
+    var customShow = this.config.show;
+    this._setCurrent(view);
+    this._render(view);
+    if (customShow) customShow(view);
+};
+
+ViewSwitcher.prototype._registerRemoveListener = function (view) {
+    if (view) view.once('remove', this._onViewRemove, this);
+};
+
+ViewSwitcher.prototype._onViewRemove = function (view) {
+    var emptyCb = this.config.empty;
+    if (this.current === view) {
+        this.current = null;
+    }
+    if (emptyCb && !this.current) {
+        emptyCb();
+    }
+};
+
+ViewSwitcher.prototype._render = function (view) {
+    if (!view.rendered) view.render({containerEl: this.el});
+    if (!view.insertSelf) this.el.appendChild(view.el);
+};
+
+ViewSwitcher.prototype._hide = function (view, cb) {
+    var customHide = this.config.hide;
+    if (!view) return cb && cb();
+    if (customHide) {
+        if (customHide.length === 2) {
+            customHide(view, function () {
+                view.remove();
+                if (cb) cb();
+            });
+        } else {
+            customHide(view);
+            view.remove();
+            if (cb) cb();
+        }
+    } else {
+        view.remove();
+        if (cb) cb();
+    }
+};
+
+
+module.exports = ViewSwitcher;
+
+},{}],9:[function(require,module,exports){
 (function (global){
 //     Backbone.js 1.2.3
 
@@ -2048,7 +2268,7 @@ module.exports = SelectView;
 }));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"jquery":11,"underscore":12}],7:[function(require,module,exports){
+},{"jquery":14,"underscore":15}],10:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -2174,7 +2394,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -3643,7 +3863,7 @@ function utf8ToBytes (string, units) {
       }
 
       // valid surrogate pair
-      codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
     } else if (leadSurrogate) {
       // valid bmp char, but last char was a lead
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -3722,7 +3942,7 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":7,"ieee754":9,"is-array":10}],9:[function(require,module,exports){
+},{"base64-js":10,"ieee754":12,"is-array":13}],12:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3808,7 +4028,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
 /**
  * isArray
@@ -3843,7 +4063,7 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -13055,7 +13275,7 @@ return jQuery;
 
 }));
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
