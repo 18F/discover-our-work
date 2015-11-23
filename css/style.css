@@ -2,23 +2,32 @@ main {
   margin: 0 auto;
   width: 80%;
 }
+
 .project-list {
   list-style-type: none;
 }
+
 .project {
-  border:1px solid black;
+  border: 1px solid black;
   float: left;
-  margin-right: 2%;
   height: 400px;
-  padding: .5em;
+  margin-right: 2%;
+  padding: 0.5em;
   width: 30%;
 }
+
 .project::before {
   content: "";
 }
+
 .tag-list {
   width: 100%;
 }
+
 .usa-label {
-  text-transform: lowercase;
+  display: inline-block;
+  margin-bottom: 0.3rem;
+  padding-bottom: 0.2rem;
+  padding-top: 0.2rem;
+  text-transform: capitalize;
 }
