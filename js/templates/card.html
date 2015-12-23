@@ -1,0 +1,9 @@
+<a href="#projects/<%- name %>"><%- name %></a>
+<p><%= description %></p>
+<% if (stack) { %>
+  <div class="tag-list">
+    <% _.each(stack, function (s) { %>
+      <span class="usa-label"><%- s %></span>
+    <% }) %>
+  </div>
+<% } %>

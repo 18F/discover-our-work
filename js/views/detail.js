@@ -3,26 +3,25 @@ var fs = require('fs');
 var _ = require('underscore');
 var Backbone = require('backbone');
 
-var html = fs.readFileSync(__dirname +  '/../templates/project.html').toString();
+var html = fs.readFileSync(__dirname +  '/../templates/detail.html').toString();
 var template = _.template(html);
 
 var ProjectCardView = Backbone.View.extend({
-  className: 'project',
-  tagName: 'li',
   initialize: function () {
     this.render();
     return this;
   },
   render: function () {
-    var defaults = {
-          description: 'Description',
-          stack: []
+    var hiddenAttributes = ['errors', 'self'],
+        opts = {
+          project: this.model.toJSON(),
+          hidden: hiddenAttributes
         },
-        attrs = _.extend({}, defaults, this.model.attributes);
-
-    var html = template(attrs);
+        html = template(opts);
 
     this.$el.html(html);
+
+    window.z = this.model.toJSON();
 
     return this;
   }

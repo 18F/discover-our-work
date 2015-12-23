@@ -15,6 +15,10 @@ main {
   padding: 0.5em;
   width: 30%;
 }
+.project.highlight {
+  border-color: red;
+  border-width: 2px;
+}
 
 .project::before {
   content: "";
